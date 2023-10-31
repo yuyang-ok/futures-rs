@@ -684,7 +684,16 @@ impl<T> Sender<T> {
             Err(TrySendError { err: SendError { kind: SendErrorKind::Disconnected }, val: msg })
         }
     }
-
+    /// check how many slice maybe used to send the data.
+    pub fn left_buffer_size(&self) -> Option<usize> {
+        self.0.as_ref().map(|x| {
+            if x.inner.buffer == 0 {
+                0
+            } else {
+                x.inner.buffer - x.inner.state.load(core::sync::atomic::Ordering::Relaxed)
+            }
+        })
+    }
     /// Send a message on the channel.
     ///
     /// This function should only be called after
